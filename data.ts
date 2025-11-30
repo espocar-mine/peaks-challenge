@@ -1,4 +1,4 @@
-import { WeekPlan, SessionType, Phase } from './types';
+import { WeekPlan, SessionType, Phase, PlanLevel } from './types';
 
 // Helper to generate dates relative to start date
 const START_DATE = new Date('2025-11-17'); // Nov 17 2025 based on PDF
@@ -9,7 +9,7 @@ const addDays = (date: Date, days: number): string => {
   return result.toISOString().split('T')[0];
 };
 
-export const TRAINING_PLAN: WeekPlan[] = [
+const LOW_VOLUME_PLAN: WeekPlan[] = [
   {
     id: 1,
     startDate: addDays(START_DATE, 0),
@@ -311,3 +311,37 @@ export const TRAINING_PLAN: WeekPlan[] = [
     ]
   },
 ];
+
+// Generate placeholder plans for Intermediate and High volume since actual data text was not provided
+// We will scale duration to mimic higher volume plans
+const scaleTime = (timeStr: string, multiplier: number): string => {
+  if (timeStr === '-') return '-';
+  const [h, m] = timeStr.split(':').map(Number);
+  const totalMins = (h * 60) + m;
+  const newMins = Math.round(totalMins * multiplier);
+  const newH = Math.floor(newMins / 60);
+  const newM = newMins % 60;
+  return `${newH}:${newM.toString().padStart(2, '0')}`;
+};
+
+const createVariant = (base: WeekPlan[], multiplier: number, label: string): WeekPlan[] => {
+  return base.map(week => ({
+    ...week,
+    subPhase: `${week.subPhase} (${label})`,
+    totalHours: scaleTime(week.totalHours, multiplier),
+    description: `${week.description} [${label} Intensity Modifier]`,
+    days: week.days.map(d => ({
+      ...d,
+      session: d.session ? {
+        ...d.session,
+        duration: scaleTime(d.session.duration, multiplier)
+      } : null
+    }))
+  }));
+};
+
+export const PLANS: Record<PlanLevel, WeekPlan[]> = {
+  Low: LOW_VOLUME_PLAN,
+  Intermediate: createVariant(LOW_VOLUME_PLAN, 1.25, 'Inter'),
+  High: createVariant(LOW_VOLUME_PLAN, 1.5, 'High')
+};

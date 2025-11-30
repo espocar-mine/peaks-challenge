@@ -17,6 +17,8 @@ export enum Phase {
   TAPER = 'Taper'
 }
 
+export type PlanLevel = 'Low' | 'Intermediate' | 'High';
+
 export interface Session {
   id: string;
   title: string;
