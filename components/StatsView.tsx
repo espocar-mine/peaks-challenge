@@ -5,9 +5,10 @@ import { WeekPlan } from '../types';
 interface Props {
   plans: WeekPlan[];
   currentWeekId: number;
+  onWeekClick?: (weekId: number) => void;
 }
 
-export const StatsView: React.FC<Props> = ({ plans, currentWeekId }) => {
+export const StatsView: React.FC<Props> = ({ plans, currentWeekId, onWeekClick }) => {
   const data = plans.map(p => {
     // Convert "H:MM" to decimal hours
     const [h, m] = p.totalHours.split(':').map(Number);
@@ -49,12 +50,22 @@ export const StatsView: React.FC<Props> = ({ plans, currentWeekId }) => {
               formatter={(value: number) => [`${value.toFixed(1)} hrs`, 'Volume']}
               labelFormatter={(label) => `Week ${label}`}
             />
-            <Bar dataKey="hours" radius={[4, 4, 4, 4]}>
+            <Bar 
+              dataKey="hours" 
+              radius={[4, 4, 4, 4]}
+              onClick={(data: any, index: number, e: any) => {
+                if (onWeekClick && data) {
+                  const weekId = parseInt(data.name);
+                  onWeekClick(weekId);
+                }
+              }}
+              style={{ cursor: onWeekClick ? 'pointer' : 'default' }}
+            >
               {data.map((entry, index) => (
                 <Cell 
                   key={`cell-${index}`} 
                   fill={entry.active ? '#2563eb' : '#e2e8f0'} 
-                  className="transition-all duration-300 hover:opacity-80"
+                  className={onWeekClick ? "transition-all duration-300 hover:opacity-80 cursor-pointer" : "transition-all duration-300 hover:opacity-80"}
                 />
               ))}
             </Bar>

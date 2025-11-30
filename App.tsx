@@ -6,7 +6,7 @@ import { CalendarView } from './components/CalendarView';
 import { SessionDetail } from './components/SessionDetail';
 import { StatsView } from './components/StatsView';
 import { ChevronLeft, ChevronRight, Calendar, BarChart2, List } from 'lucide-react';
-import { addMonths, subMonths, format, parseISO } from 'date-fns';
+import { addMonths, subMonths, format, parseISO, isWithinInterval, startOfDay, isAfter, isBefore } from 'date-fns';
 
 const App: React.FC = () => {
   const [view, setView] = useState<'week' | 'month'>('week');
@@ -45,6 +45,44 @@ const App: React.FC = () => {
     setView('week');
     const week = TRAINING_PLAN.find(w => w.id === weekId);
     if (week) setCurrentDate(parseISO(week.startDate));
+  };
+
+  const handleGoToToday = () => {
+    const today = startOfDay(new Date());
+    
+    // Get the first and last week dates
+    const firstWeek = TRAINING_PLAN[0];
+    const lastWeek = TRAINING_PLAN[TRAINING_PLAN.length - 1];
+    const planStart = startOfDay(parseISO(firstWeek.startDate));
+    const planEnd = startOfDay(parseISO(lastWeek.endDate));
+    
+    let targetWeek;
+    
+    // If today is before the plan starts, go to first week
+    if (isBefore(today, planStart)) {
+      targetWeek = firstWeek;
+    }
+    // If today is after the plan ends, go to last week
+    else if (isAfter(today, planEnd)) {
+      targetWeek = lastWeek;
+    }
+    // Find the week that contains today
+    else {
+      targetWeek = TRAINING_PLAN.find(week => {
+        const weekStart = startOfDay(parseISO(week.startDate));
+        const weekEnd = startOfDay(parseISO(week.endDate));
+        return isWithinInterval(today, { start: weekStart, end: weekEnd });
+      });
+    }
+
+    if (targetWeek) {
+      setCurrentWeekId(targetWeek.id);
+      setCurrentDate(today);
+      setView('week');
+    } else {
+      // Fallback: just set the date to today for month view
+      setCurrentDate(today);
+    }
   };
 
   return (
@@ -95,9 +133,17 @@ const App: React.FC = () => {
                 <ChevronLeft size={16} />
                 Prev Week
               </button>
-              <span className="font-semibold text-slate-700">
-                Week {currentWeekId} / 16
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="font-semibold text-slate-700">
+                  Week {currentWeekId} / 16
+                </span>
+                <button 
+                  onClick={handleGoToToday}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                >
+                  Today
+                </button>
+              </div>
               <button 
                 onClick={handleNextWeek}
                 disabled={currentWeekId === 16}
@@ -116,9 +162,17 @@ const App: React.FC = () => {
                 <ChevronLeft size={16} />
                 {format(subMonths(currentDate, 1), 'MMM')}
               </button>
-              <span className="font-bold text-lg text-slate-800">
-                {format(currentDate, 'MMMM yyyy')}
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="font-bold text-lg text-slate-800">
+                  {format(currentDate, 'MMMM yyyy')}
+                </span>
+                <button 
+                  onClick={handleGoToToday}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                >
+                  Today
+                </button>
+              </div>
               <button 
                 onClick={() => handleMonthNav('next')}
                 className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors"
@@ -149,7 +203,11 @@ const App: React.FC = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <StatsView plans={TRAINING_PLAN} currentWeekId={currentWeekId} />
+            <StatsView 
+              plans={TRAINING_PLAN} 
+              currentWeekId={currentWeekId}
+              onWeekClick={goToWeek}
+            />
             
             <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-lg">
               <h3 className="font-bold text-lg mb-2">Training Zones</h3>
