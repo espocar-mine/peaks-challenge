@@ -1,20 +1,56 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Peaks Challenge Falls Creek 2026 - Training Companion
 
-# Run and deploy your AI Studio app
+A comprehensive training companion app for the Peaks Challenge Falls Creek 2026 cycling event. This app provides a detailed 16-week training plan with weekly and monthly views, session details, and progress tracking.
 
-This contains everything you need to run your app locally.
+## Features
 
-View your app in AI Studio: https://ai.studio/apps/drive/1ukMa_9tVtRmdJ2ZKs3AcAdmIDDXx2fhZ
+- **16-Week Training Plans**: Choose from Low, Intermediate, or High volume training plans
+- **Weekly View**: Detailed day-by-day breakdown of each week's training sessions
+- **Monthly Calendar View**: Visual calendar representation of your training schedule
+- **Session Details**: Click on any session to view detailed instructions, zones, and training parameters
+- **Progress Tracking**: View statistics and progress across your training plan
+- **Training Zones Reference**: Quick reference for power zones and heart rate zones
 
 ## Run Locally
 
-**Prerequisites:**  Node.js
-
+**Prerequisites:** Node.js (v18 or higher)
 
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+   ```bash
+   npm install
+   ```
+
+2. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+3. Open your browser and navigate to `http://localhost:3001`
+
+## Build for Production
+
+To create a production build:
+
+```bash
+npm run build
+```
+
+The built files will be in the `dist` directory.
+
+## Project Structure
+
+- `App.tsx` - Main application component
+- `components/` - React components (WeekView, CalendarView, SessionDetail, StatsView)
+- `data.ts` - Training plan data for all 16 weeks
+- `types.ts` - TypeScript type definitions
+- `constants.ts` - Color schemes and constants
+
+## Training Plan Overview
+
+The training plan is divided into 4 phases:
+- **Base** (Weeks 1-4): Building aerobic base and strength
+- **Build** (Weeks 5-12): Increasing intensity and volume
+- **Focus** (Weeks 13-15): VO2 Max work and event simulation
+- **Taper** (Week 16): Final preparation and event day
+
+Each plan includes detailed session descriptions, power zones, cadence targets, and training instructions.
