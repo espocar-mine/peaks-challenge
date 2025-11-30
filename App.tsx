@@ -6,7 +6,7 @@ import { CalendarView } from './components/CalendarView';
 import { SessionDetail } from './components/SessionDetail';
 import { StatsView } from './components/StatsView';
 import { ChevronLeft, ChevronRight, Calendar, BarChart2, List, Clock, Settings, Target } from 'lucide-react';
-import { addMonths, subMonths, format, parseISO, differenceInWeeks, isBefore, isAfter } from 'date-fns';
+import { addMonths, subMonths, format, parseISO, differenceInWeeks, isBefore, isAfter, startOfDay } from 'date-fns';
 
 const App: React.FC = () => {
   const [view, setView] = useState<'week' | 'month'>('week');
@@ -17,8 +17,8 @@ const App: React.FC = () => {
 
   const currentPlan = PLANS[planLevel];
 
-  const currentWeek = useMemo(() => 
-    currentPlan.find(w => w.id === currentWeekId) || currentPlan[0], 
+  const currentWeek = useMemo(() =>
+    currentPlan.find(w => w.id === currentWeekId) || currentPlan[0],
     [currentWeekId, currentPlan]
   );
 
@@ -50,9 +50,10 @@ const App: React.FC = () => {
   };
 
   const goToToday = () => {
-    const today = new Date();
-    const startDate = new Date('2025-11-17');
-    
+    // Normalize to local midnight to avoid timezone issues
+    const today = startOfDay(new Date());
+    const startDate = startOfDay(new Date('2025-11-17'));
+
     // Check if we are before the start of the program
     if (isBefore(today, startDate)) {
       goToWeek(1);
@@ -60,7 +61,7 @@ const App: React.FC = () => {
     }
 
     const weeksDiff = differenceInWeeks(today, startDate) + 1;
-    
+
     if (weeksDiff > 16) {
       goToWeek(16);
     } else if (weeksDiff < 1) {
@@ -68,9 +69,9 @@ const App: React.FC = () => {
     } else {
       goToWeek(weeksDiff);
     }
-    
+
     // Also ensure the calendar view highlights today if we are in that mode
-    setCurrentDate(today);
+    setCurrentDate(new Date());
   };
 
   return (
@@ -79,42 +80,42 @@ const App: React.FC = () => {
       <header className="bg-slate-900 text-white sticky top-0 z-40 shadow-lg">
         <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-3">
-             <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-xl">
+            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-xl">
               P
-             </div>
-             <div>
-               <h1 className="text-xl font-bold tracking-tight">Peaks Challenge Falls Creek</h1>
-               <p className="text-xs text-slate-400 font-medium tracking-wider uppercase">Training Companion • 2026</p>
-             </div>
+            </div>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight">Peaks Challenge Falls Creek</h1>
+              <p className="text-xs text-slate-400 font-medium tracking-wider uppercase">Training Companion • 2026</p>
+            </div>
           </div>
-          
+
           <div className="flex flex-wrap gap-2 items-center">
             {/* Plan Selector */}
             <div className="mr-2 flex items-center bg-slate-800 rounded-lg p-1 border border-slate-700">
-               <Target size={14} className="ml-2 text-slate-400" />
-               <select 
-                  value={planLevel}
-                  onChange={(e) => {
-                    setPlanLevel(e.target.value as PlanLevel);
-                    setCurrentWeekId(1); // Reset to week 1 to avoid data mismatch issues
-                  }}
-                  className="bg-transparent text-sm text-white font-medium py-1 px-2 outline-none border-none focus:ring-0 cursor-pointer"
-               >
-                 <option value="Low">Low Volume (7-15h)</option>
-                 <option value="Intermediate">Intermediate (9-18h)</option>
-                 <option value="High">High Volume (12-22h)</option>
-               </select>
+              <Target size={14} className="ml-2 text-slate-400" />
+              <select
+                value={planLevel}
+                onChange={(e) => {
+                  setPlanLevel(e.target.value as PlanLevel);
+                  setCurrentWeekId(1); // Reset to week 1 to avoid data mismatch issues
+                }}
+                className="bg-transparent text-sm text-white font-medium py-1 px-2 outline-none border-none focus:ring-0 cursor-pointer"
+              >
+                <option value="Low">Low Volume (7-15h)</option>
+                <option value="Intermediate">Intermediate (9-18h)</option>
+                <option value="High">High Volume (12-22h)</option>
+              </select>
             </div>
 
             <div className="flex bg-slate-800 rounded-lg p-1 border border-slate-700">
-              <button 
+              <button
                 onClick={() => setView('week')}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${view === 'week' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'}`}
               >
                 <List size={16} />
                 <span className="hidden sm:inline">Weekly</span>
               </button>
-              <button 
+              <button
                 onClick={() => setView('month')}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${view === 'month' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'}`}
               >
@@ -127,11 +128,11 @@ const App: React.FC = () => {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-8">
-        
+
         {/* Navigation Controls */}
         <div className="flex flex-wrap items-center justify-between mb-8 gap-4">
           <div className="flex items-center gap-2">
-            <button 
+            <button
               onClick={goToToday}
               className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-colors shadow-sm"
             >
@@ -143,7 +144,7 @@ const App: React.FC = () => {
           <div className="flex items-center gap-4">
             {view === 'week' ? (
               <>
-                <button 
+                <button
                   onClick={handlePrevWeek}
                   disabled={currentWeekId === 1}
                   className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -153,7 +154,7 @@ const App: React.FC = () => {
                 <span className="font-semibold text-slate-700 min-w-[100px] text-center">
                   Week {currentWeekId} / 16
                 </span>
-                <button 
+                <button
                   onClick={handleNextWeek}
                   disabled={currentWeekId === 16}
                   className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -163,7 +164,7 @@ const App: React.FC = () => {
               </>
             ) : (
               <>
-                <button 
+                <button
                   onClick={() => handleMonthNav('prev')}
                   className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors"
                 >
@@ -173,7 +174,7 @@ const App: React.FC = () => {
                 <span className="font-bold text-lg text-slate-800 min-w-[140px] text-center">
                   {format(currentDate, 'MMMM yyyy')}
                 </span>
-                <button 
+                <button
                   onClick={() => handleMonthNav('next')}
                   className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors"
                 >
@@ -183,7 +184,7 @@ const App: React.FC = () => {
               </>
             )}
           </div>
-          
+
           <div className="w-[88px]"></div> {/* Spacer for alignment */}
         </div>
 
@@ -191,13 +192,13 @@ const App: React.FC = () => {
           {/* Main Content Area */}
           <div className="lg:col-span-2">
             {view === 'week' ? (
-              <WeekView 
-                week={currentWeek} 
+              <WeekView
+                week={currentWeek}
                 onSelectSession={setSelectedSession}
               />
             ) : (
-              <CalendarView 
-                plans={currentPlan} 
+              <CalendarView
+                plans={currentPlan}
                 currentDate={currentDate}
                 onSelectWeek={goToWeek}
               />
@@ -206,12 +207,12 @@ const App: React.FC = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <StatsView 
-              plans={currentPlan} 
-              currentWeekId={currentWeekId} 
+            <StatsView
+              plans={currentPlan}
+              currentWeekId={currentWeekId}
               onSelectWeek={goToWeek}
             />
-            
+
             <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-lg">
               <h3 className="font-bold text-lg mb-2">Training Zones</h3>
               <p className="text-blue-100 text-sm mb-4">
@@ -226,7 +227,7 @@ const App: React.FC = () => {
                   <span>Z3 Tempo</span>
                   <span className="font-mono">76-90% FTP</span>
                 </div>
-                 <div className="flex justify-between items-center bg-white/10 px-3 py-2 rounded">
+                <div className="flex justify-between items-center bg-white/10 px-3 py-2 rounded">
                   <span>Z4 Threshold</span>
                   <span className="font-mono">91-105% FTP</span>
                 </div>
@@ -238,9 +239,9 @@ const App: React.FC = () => {
 
       {/* Modals */}
       {selectedSession && (
-        <SessionDetail 
-          session={selectedSession} 
-          onClose={() => setSelectedSession(null)} 
+        <SessionDetail
+          session={selectedSession}
+          onClose={() => setSelectedSession(null)}
         />
       )}
     </div>
